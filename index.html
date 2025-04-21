@@ -93,6 +93,28 @@
       border-color: white;
     }
 
+    .distance-line {
+    position: absolute;
+    top: 40px; /* 20px + (40px/2) = vertical center of a block */
+    height: 2px;
+    border-top: 2px dotted #aaa;
+    z-index: 10;
+}
+
+.distance-label {
+    position: absolute;
+    top: 20px; /* placed above the line */
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    padding: 2px 5px;
+    font-size: 12px;
+    color: #fff;
+    font-family: 'MinecraftBold', monospace;
+    white-space: nowrap;
+    z-index: 11;
+}
+
     .block .duration-label {
       font-size: 13px;
       color: #ccc;
@@ -444,6 +466,7 @@
     let selectedBlock = null;
     let isPlaying = false;
     const TICK_SIZE = 20;
+    const DEFAULT_SPACING_TICKS = 4;
     let ticksPerSecond = 200;
 
     let undoStack = [];
@@ -614,89 +637,80 @@
     }
 
     function addBlock(duplicate = null) {
-      const block = document.createElement('div');
-      block.classList.add('block');
-      block.addEventListener('click', (e) => { e.stopPropagation(); selectBlock(block); });
+    const block = document.createElement('div');
+    block.classList.add('block');
+    block.addEventListener('click', (e) => { e.stopPropagation(); selectBlock(block); });
 
-      timeline.addEventListener('click', (e) => {
-        if (e.target === timeline) {
-          if (selectedBlock) {
-            selectedBlock.classList.remove('selected');
-            selectedBlock = null;
-          }
+    timeline.addEventListener('click', (e) => {
+      if (e.target === timeline) {
+        if (selectedBlock) {
+          selectedBlock.classList.remove('selected');
+          selectedBlock = null;
         }
-      });
+      }
+    });
 
-      if (duplicate) {
+    if (duplicate) {
+        // When duplicating, position the new block after the duplicate with a default 4-tick spacing
         block.dataset.text = duplicate.dataset.text;
         block.dataset.fadeIn = duplicate.dataset.fadeIn;
         block.dataset.fadeOut = duplicate.dataset.fadeOut;
         block.dataset.duration = duplicate.dataset.duration;
         block.style.width = duplicate.style.width;
-        let baseLeft = parseInt(duplicate.style.left);
-        let dupWidth = parseInt(duplicate.style.width);
-        let candidateLeft = baseLeft + 120;
-        let candidateRight = candidateLeft + dupWidth;
-        let sorted = blocks.filter(b => parseInt(b.style.left) >= candidateLeft)
-          .sort((a, b) => parseInt(a.style.left) - parseInt(b.style.left));
-        sorted.forEach(b => {
-          let bLeft = parseInt(b.style.left);
-          if (bLeft < candidateRight) {
-            let shift = candidateRight - bLeft;
-            b.style.left = `${bLeft + shift}px`;
-            candidateRight = parseInt(b.style.left) + parseInt(b.style.width);
-          }
-        });
-        block.style.left = `${candidateLeft}px`;
+        block.style.left = `${parseInt(duplicate.style.left) + parseInt(duplicate.style.width) + (DEFAULT_SPACING_TICKS * TICK_SIZE)}px`;
         block.style.top = duplicate.style.top || "20px";
 
         if (duplicate._rainbowify) {
           block.dataset.originalText = duplicate.dataset.originalText || duplicate.dataset.text.replace(/(&[0-9a-frlomnk])/gi, '');
           block.dataset.text = block.dataset.originalText;
         }
-      } else {
+    } else {
+        // New block: use the text input and default spacing based on the last block
         block.dataset.text = blockText.value;
         block.dataset.fadeIn = 0;
         block.dataset.fadeOut = 0;
         block.dataset.duration = 5;
         block.style.width = `${5 * TICK_SIZE}px`;
-        block.style.left = `${blocks.length * 120}px`;
+        block.style.left = `${(blocks.length === 0 
+            ? 0 
+            : parseInt(blocks[blocks.length - 1].style.left) + 
+              parseInt(blocks[blocks.length - 1].style.width) + (DEFAULT_SPACING_TICKS * TICK_SIZE))}px`;
         block.style.top = "20px";
-      }
+    }
 
-      block.innerHTML = block.dataset.text
-        .split('\n')
-        .map(line => `<div>${line}</div>`)
-        .join('');
-      block.setAttribute('title', block.dataset.text);
-      const durationLabel = document.createElement('div');
-      durationLabel.className = 'duration-label';
-      durationLabel.textContent = `${block.dataset.duration}t`;
-      block.appendChild(durationLabel);
+    block.innerHTML = block.dataset.text
+      .split('\n')
+      .map(line => `<div>${line}</div>`)
+      .join('');
+    block.setAttribute('title', block.dataset.text);
+    const durationLabel = document.createElement('div');
+    durationLabel.className = 'duration-label';
+    durationLabel.textContent = `${block.dataset.duration}t`;
+    block.appendChild(durationLabel);
 
-      const leftHandle = document.createElement('div');
-      leftHandle.classList.add('resize-handle', 'left-handle');
-      block.appendChild(leftHandle);
+    const leftHandle = document.createElement('div');
+    leftHandle.classList.add('resize-handle', 'left-handle');
+    block.appendChild(leftHandle);
 
-      const rightHandle = document.createElement('div');
-      rightHandle.classList.add('resize-handle', 'right-handle');
-      block.appendChild(rightHandle);
+    const rightHandle = document.createElement('div');
+    rightHandle.classList.add('resize-handle', 'right-handle');
+    block.appendChild(rightHandle);
 
-      updateFadeVisuals(block);
-      makeDraggable(block);
-      makeResizable(block, leftHandle, rightHandle);
+    updateFadeVisuals(block);
+    makeDraggable(block);
+    makeResizable(block, leftHandle, rightHandle);
 
-      block.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        const menu = document.createElement('div');
-        menu.style.position = 'absolute';
-        menu.style.left = `${e.pageX}px`;
-        menu.style.top = `${e.pageY}px`;
-        menu.style.background = '#2a2a2a';
-        menu.style.color = 'white';
-        menu.style.padding = '10px';
-        menu.style.border = '1px solid #555';
-        menu.innerHTML = `
+    block.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      const menu = document.createElement('div');
+      menu.style.position = 'absolute';
+      menu.style.left = `${e.pageX}px`;
+      menu.style.top = `${e.pageY}px`;
+      menu.style.background = '#2a2a2a';
+      menu.style.color = 'white';
+      menu.style.padding = '10px';
+      menu.style.border = '1px solid #555';
+      menu.innerHTML = `
           <textarea rows="2">${block.dataset.text}</textarea><br>
           Fade In: <input type="range" min="0" max="3" value="${block.dataset.fadeIn}"><br>
           Fade Out: <input type="range" min="0" max="3" value="${block.dataset.fadeOut}"><br>
@@ -704,10 +718,10 @@
           <button id="cancelBtn">Cancel</button>
           <button id="deleteBtn">Delete</button>
           <button id="duplicateBtn">Duplicate</button>
-        `;
-        document.body.appendChild(menu);
+      `;
+      document.body.appendChild(menu);
 
-        menu.querySelector('#saveBtn').onclick = () => {
+      menu.querySelector('#saveBtn').onclick = () => {
           block.dataset.text = menu.querySelector('textarea').value;
           block.dataset.fadeIn = menu.querySelectorAll('input')[0].value;
           block.dataset.fadeOut = menu.querySelectorAll('input')[1].value;
@@ -720,28 +734,29 @@
           block.appendChild(rightHandle);
           updateFadeVisuals(block);
           menu.remove();
-        };
-        menu.querySelector('#cancelBtn').onclick = () => menu.remove();
-        menu.querySelector('#deleteBtn').onclick = () => { 
+      };
+      menu.querySelector('#cancelBtn').onclick = () => menu.remove();
+      menu.querySelector('#deleteBtn').onclick = () => { 
           if (block._rainbowify) { block._rainbowify.remove(); } 
           block.remove(); 
           blocks = blocks.filter(b => b !== block); 
           menu.remove(); 
-        };
-        menu.querySelector('#duplicateBtn').onclick = () => { addBlock(block); menu.remove(); };
+      };
+      menu.querySelector('#duplicateBtn').onclick = () => { addBlock(block); menu.remove(); };
 
-        document.addEventListener('click', e => { if (!menu.contains(e.target)) menu.remove(); }, { once: true });
-      });
+      document.addEventListener('click', e => { if (!menu.contains(e.target)) menu.remove(); }, { once: true });
+    });
 
-      timeline.appendChild(block);
-      blocks.push(block);
+    timeline.appendChild(block);
+    blocks.push(block);
 
-      if (duplicate && duplicate._rainbowify) {
-        createRainbowifyBlock(block);
-      }
+    if (duplicate && duplicate._rainbowify) {
+      createRainbowifyBlock(block);
     }
+}
 
     function makeDraggable(el) {
+      
       let dragging = false;
       let draggingHappened = false;
       let offsetX = 0;
@@ -768,16 +783,34 @@
           }
         });
         if (!collision) {
-          if (el.style.left !== `${Math.max(0, candidate)}px`) {
-            draggingHappened = true;
-          }
-          el.style.left = `${Math.max(0, candidate)}px`;
-          if (el._rainbowify) {
-            updateRainbowifyBlockPosition(el);
-          }
+  if (el.style.left !== `${Math.max(0, candidate)}px`) {
+    draggingHappened = true;
+  }
+  el.style.left = `${Math.max(0, candidate)}px`;
+  if (el._rainbowify) {
+    updateRainbowifyBlockPosition(el);
+  }
+  showDistanceLines(el); // ✅ Add this to show visuals
         }
       });
+      const drawLine = (fromX, toX, ticks) => {
+    // Only draw if there is measurable space
+    if (toX - fromX <= 0) return;
 
+    const line = document.createElement('div');
+    line.className = 'distance-line';
+    line.style.left = `${fromX}px`;
+    line.style.width = `${toX - fromX}px`;
+    timeline.appendChild(line);
+
+    const label = document.createElement('div');
+    label.className = 'distance-label';
+    // Center the label exactly between fromX and toX
+    label.style.left = `${(fromX + toX) / 2}px`;
+    // Remove any inline top positioning so CSS takes effect
+    label.textContent = `${ticks} ticks`;
+    timeline.appendChild(label);
+};
       document.addEventListener('mouseup', () => {
         if (dragging && draggingHappened) {
           pushHistory();
@@ -786,7 +819,8 @@
           }
         }
         dragging = false;
-        draggingHappened = false;
+draggingHappened = false;
+clearDistanceLines(); // ✅ Add this to clean up visuals
       });
     }
 
@@ -869,43 +903,40 @@
       });
     }
 
+
+    
     function playTimeline() {
-      const lastBlockEnd = blocks.reduce((max, block) => {
-        const left = parseInt(block.style.left);
-        const width = parseInt(block.style.width);
-        return Math.max(max, left + width);
-      }, 0);
+  if (isPlaying) {
+    isPlaying = false;
+    return;
+  }
+  isPlaying = true;
 
-      if (playbackX >= lastBlockEnd) {
-        playbackX = 0;
-        updatePlayhead();
-        updatePreview();
-      }
+  // Calculate the end point of the last block
+  const lastBlockEnd = blocks.reduce((max, block) => {
+    const left = parseInt(block.style.left);
+    const width = parseInt(block.style.width);
+    return Math.max(max, left + width);
+  }, 0);
 
-      if (isPlaying) {
-        isPlaying = false;
-        return;
-      }
+  playbackX = 0;
 
-      isPlaying = true;
+  function update() {
+    if (!isPlaying) return;
 
-      function update() {
-        if (!isPlaying) return;
+    updatePlayhead();
+    updatePreview();
 
-        updatePlayhead();
-        updatePreview();
-
-        if (playbackX >= lastBlockEnd) {
-          isPlaying = false;
-          return;
-        }
-
-        playbackX += 1;
-        setTimeout(update, 1000 / ticksPerSecond);
-      }
-
-      update();
+    if (playbackX >= lastBlockEnd) {
+      isPlaying = false;
+      return;
     }
+
+    playbackX += 1;
+    setTimeout(update, 1000 / ticksPerSecond);
+  }
+  update();
+}
 
     function updatePlayhead() {
       playbackLine.style.left = `${playbackX}px`;
@@ -1342,6 +1373,71 @@
         e.preventDefault();
       }
     });
+
+    function showDistanceLines(draggingBlock) {
+  clearDistanceLines();
+
+  const draggingLeft = parseInt(draggingBlock.style.left);
+  const draggingRight = draggingLeft + parseInt(draggingBlock.style.width);
+
+  let closestLeft = null, closestRight = null;
+  let minLeftDist = Infinity, minRightDist = Infinity;
+
+  blocks.forEach(block => {
+    if (block === draggingBlock) return;
+    const blockLeft = parseInt(block.style.left);
+    const blockRight = blockLeft + parseInt(block.style.width);
+
+    const distToLeft = draggingLeft - blockRight;
+    const distToRight = blockLeft - draggingRight;
+
+    if (distToLeft >= 0 && distToLeft < minLeftDist) {
+      minLeftDist = distToLeft;
+      closestLeft = block;
+    }
+
+    if (distToRight >= 0 && distToRight < minRightDist) {
+      minRightDist = distToRight;
+      closestRight = block;
+    }
+  });
+
+  const drawLine = (fromX, toX, ticks) => {
+    // Only draw if there is measurable space
+    if (toX - fromX <= 0) return;
+
+    const line = document.createElement('div');
+    line.className = 'distance-line';
+    line.style.left = `${fromX}px`;
+    line.style.width = `${toX - fromX}px`;
+    timeline.appendChild(line);
+
+    const label = document.createElement('div');
+    label.className = 'distance-label';
+    // Center the label exactly between fromX and toX
+    label.style.left = `${(fromX + toX) / 2}px`;
+    // Remove any inline top positioning so CSS takes effect
+    label.textContent = `${ticks} ticks`;
+    timeline.appendChild(label);
+  };
+
+  if (closestLeft) {
+    const rightEdge = parseInt(closestLeft.style.left) + parseInt(closestLeft.style.width);
+    const ticks = Math.round((draggingLeft - rightEdge) / TICK_SIZE);
+    drawLine(rightEdge, draggingLeft, ticks);
+  }
+
+  if (closestRight) {
+    const leftEdge = parseInt(closestRight.style.left);
+    const ticks = Math.round((leftEdge - draggingRight) / TICK_SIZE);
+    drawLine(draggingRight, leftEdge, ticks);
+  }
+}
+
+function clearDistanceLines() {
+  document.querySelectorAll('.distance-line, .distance-label').forEach(el => el.remove());
+}
+
   </script>
 </body>
 
