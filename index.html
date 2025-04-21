@@ -1,9 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Timeline Editor - Minecraft Style</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta property="og:title" content="TitleTimeline" />
+  <meta property="og:description" content="Create Housing Title Animations like a video editor!" />
+  <meta property="og:image" content="https://tdarth.github.io/TitleTimeline/logo.png" />
+  <meta property="og:url" content="https://tdarth.github.io/TitleTimeline/" />
+  <meta property="og:type" content="website" />
+  
+  <title>Title Editor</title>
+  <link rel="shortcut icon" type="image/png" href="favicon.png">
   <style>
     @font-face {
       font-family: 'MinecraftRegular';
@@ -39,67 +48,63 @@
     }
 
     #playbackLine {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: #2d8ceb;
-  pointer-events: none;
-  z-index: 5;
-}
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: #2d8ceb;
+      pointer-events: none;
+      z-index: 5;
+    }
 
-
-
-#playheadHandle {
-  width: 10px;
-  height: 10px;
-  background: #2d8ceb;
-  position: absolute;
-  top: -5px;
-  left: -4px;
-  border-radius: 2px;
-  cursor: ew-resize;
-  pointer-events: auto;
-}
+    #playheadHandle {
+      width: 10px;
+      height: 20px;
+      background: rgb(155, 202, 255);
+      position: absolute;
+      top: -5px;
+      left: -4px;
+      border-radius: 2px;
+      cursor: ew-resize;
+      pointer-events: auto;
+    }
 
     .block {
-  position: absolute;
-  background: #6b46c1;
-  color: white;
-  padding: 5px;
-  border-radius: 0px;
-  min-width: 50px;
-  height: 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  font-size: 14px;
-  font-family: 'MinecraftBold', monospace;
-  overflow: hidden;
-  cursor: move;
-  box-sizing: border-box;
-  border: 2px solid #7a5df0; /* slightly brighter border */
-}
+      position: absolute;
+      background: #6b46c1;
+      color: white;
+      padding: 5px;
+      border-radius: 0px;
+      min-width: 0;
+      height: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      font-size: 14px;
+      font-family: 'MinecraftBold', monospace;
+      overflow: hidden;
+      cursor: move;
+      box-sizing: border-box;
+      border: 2px solid #7a5df0;
+      transition: left 0.1s ease, width 0.1s ease;
+    }
 
-.block.selected {
-  border-color: white;
-}
+    .block.selected {
+      border-color: white;
+    }
 
-.block .duration-label {
-  font-size: 13px;
-  color: #ccc;
-  position: absolute;
-  bottom: 2px;
-  right: 5px;
-  font-family: 'MinecraftRegular', monospace;
-}
+    .block .duration-label {
+      font-size: 13px;
+      color: #ccc;
+      position: absolute;
+      bottom: 2px;
+      right: 5px;
+      font-family: 'MinecraftRegular', monospace;
+    }
 
     .block div {
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
-
 
     .block .fade-in {
       position: absolute;
@@ -130,8 +135,13 @@
       z-index: 2;
     }
 
-    .left-handle { left: -4px; }
-    .right-handle { right: -4px; }
+    .left-handle {
+      left: -4px;
+    }
+
+    .right-handle {
+      right: -4px;
+    }
 
     .selected {
       outline: 2px solid white;
@@ -158,7 +168,8 @@
       border-bottom: 1px solid #444;
     }
 
-    #inspector, #controls {
+    #inspector,
+    #controls {
       padding: 15px;
       background: #2a2a2a;
       color: white;
@@ -166,7 +177,8 @@
       border-top: 1px solid #444;
     }
 
-    #inspector input, #inspector textarea {
+    #inspector input,
+    #inspector textarea {
       font-family: 'MinecraftRegular', monospace;
       font-size: 16px;
       background-color: #111;
@@ -205,183 +217,415 @@
       margin-top: 10px;
     }
 
+    #blockText {
+      width: 300px;
+      box-sizing: border-box;
+    }
+
+    #outputContainer {
+      width: 100%;
+      max-width: 600px;
+      height: 80vh;
+      position: relative;
+      margin: 10px auto;
+    }
+
+    #inspector {
+      position: relative;
+    }
+
+    #effectsToolbar {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      text-align: center;
+      font-family: 'MinecraftBold', monospace;
+      color: white;
+    }
+
+    #effectsToolbar button {
+      cursor: move;
+      background: #444;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      margin-top: 4px;
+    }
+
+    .rainbowify-block {
+      background: #444;
+      color: white;
+      font-family: 'MinecraftBold', monospace;
+      text-align: center;
+      cursor: move;
+      user-select: none;
+      position: absolute;
+      height: 20px;
+      transition: left 0.1s ease, width 0.1s ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .block.dimmed {
+      opacity: 0.5;
+      transition: opacity 0.2s;
+    }
   </style>
 </head>
+
 <body>
 
   <div id="timeline">
     <div id="playbackLine">
-        <div id="playheadHandle"></div>
-      </div>
+      <div id="playheadHandle"></div>
+    </div>
   </div>
-  
 
-
-  <div id="previewBox">🎬 Drop a block and hit play!</div>
+  <div id="previewBox">🎬 Add a block and hit play!</div>
 
   <div id="inspector">
-    <h3>Inspector</h3>
+    <h3>&5[&dTitle Editor&5] &8by &btdarth &8and &anotben&8.</h3>
+    <h5>&8TIP: &7Right-Click a block in the timeline for more options.</h5>
     <textarea id="blockText" rows="2" placeholder="Enter block text here..."></textarea>
-    <div>
-      <label>Set Duration (ticks):</label>
-      <input type="number" id="durationAllInput" min="1" max="10" value="5" />
-      <button onclick="setDurationAll()">Duration All</button>
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+      <label for="durationAllInput" style="width: 130px;">Set Duration (ticks):</label>
+      <input type="number" id="durationAllInput" min="1" max="10" value="5" style="width: 60px;" />
+      <button onclick="setDurationAll()">&7Duration All</button>
     </div>
-    <div>
-      <label>Set Space (ticks):</label>
-      <input type="number" id="spaceAllInput" min="0" value="5" />
-      <button onclick="setSpaceAll()">Space All</button>
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+      <label for="spaceAllInput" style="width: 130px;">Set Delay (ticks):</label>
+      <input type="number" id="spaceAllInput" min="0" value="3" style="width: 60px;" />
+      <button onclick="setSpaceAll()">&7Space All</button>
     </div>
-    <div>
-      <label>Playback Speed (ticks/sec):</label>
-      <input type="number" id="playbackSpeedInput" min="5" max="60" value="20" />
-      <button onclick="updatePlaybackSpeed()">Set Speed</button>
+    <div id="effectsToolbar">
+      <div>🪄 Effects</div>
+      <button id="rainbowifyBtn" draggable="true">&c&lR&6a&ei&an&bb&do&cw&6i&ef&ay</button>
     </div>
   </div>
 
   <div id="controls">
-    <button onclick="addBlock()">Add Title</button>
-    <button onclick="playTimeline()">Play</button>
-    <button onclick="exportTimeline()">Export</button>
-    <pre id="output"></pre>
+    <button onclick="addBlock()">&aAdd Title</button>
+    <button onclick="playTimeline()">&2Play</button>
+    <button onclick="exportTimeline()">&cExport</button>
+    <button onclick="showImportBox()">&4Import</button>
+  </div>
+  <div id="outputContainer" style="width: 100%; height: 80vh; position: relative; margin-top: 10px;">
+    <pre id="output" style="width: 100%; height: 100%;"></pre>
+    <button id="copyButton" onclick="copyToClipboard()" style="position: absolute; top: 5px; right: 5px;">📋</button>
+  </div>
+  <div id="importModal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div
+      style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #222; padding: 20px; border-radius: 5px; width: 80%; max-width: 600px;">
+      <button onclick="closeImportModal()"
+        style="float: right; background: transparent; color: white; border: none; font-size: 20px;">×</button>
+      <h3 style="color: white;">Import Timeline</h3>
+      <textarea id="importText" style="width: 100%; height: 150px; resize: none;"
+        placeholder="Paste exported code here"></textarea>
+      <button onclick="importTimelineFromModal()" style="margin-top: 10px;">Import Timeline</button>
+    </div>
   </div>
 
   <script>
-    let playbackX = 0;
-    let isDraggingPlayhead = false;
-function parseMinecraftCodes(text) {
-  const colorMap = {
-    '0': '#000000', '1': '#0000AA', '2': '#00AA00', '3': '#00AAAA',
-    '4': '#AA0000', '5': '#AA00AA', '6': '#FFAA00', '7': '#AAAAAA',
-    '8': '#555555', '9': '#5555FF', 'a': '#55FF55', 'b': '#55FFFF',
-    'c': '#FF5555', 'd': '#FF55FF', 'e': '#FFFF55', 'f': '#FFFFFF'
-  };
+    let draggedRainbowifyBlock = null;
 
-  const formatMap = {
-    'l': 'font-weight: bold;',
-    'n': 'text-decoration: underline;',
-    'm': 'text-decoration: line-through;',
-    'o': 'font-style: italic;',
-    'r': '' // Reset
-  };
+    function selectBlock(block) {
+      if (selectedBlock) selectedBlock.classList.remove('selected');
+      selectedBlock = block;
+      block.classList.add('selected');
+    }
 
-  let currentStyles = '';
-  let hasBold = false;
-  let outputLines = [];
+    function updateFadeVisuals(block) {
+      const fadeIn = parseInt(block.dataset.fadeIn);
+      const fadeOut = parseInt(block.dataset.fadeOut);
 
-  const lines = text.split('\n').slice(0, 2); // Max 2 lines
-
-  for (const line of lines) {
-    let html = '';
-    let parts = line.split(/(&[0-9a-frlomnk])/gi);
-
-    for (let part of parts) {
-      if (part.startsWith('&')) {
-        const code = part[1]?.toLowerCase();
-        if (colorMap[code]) {
-          currentStyles += `color: ${colorMap[code]};`;
-        } else if (formatMap.hasOwnProperty(code)) {
-          if (code === 'r') {
-            currentStyles = '';
-          } else {
-            currentStyles += formatMap[code];
-            if (code === 'l') hasBold = true;
-          }
+      if (fadeIn > 0) {
+        if (!block.querySelector('.fade-in')) {
+          const div = document.createElement('div');
+          div.classList.add('fade-in');
+          block.appendChild(div);
         }
-      } else if (part) {
-        html += `<span style="${currentStyles}">${part}</span>`;
+      } else {
+        const el = block.querySelector('.fade-in');
+        if (el) el.remove();
+      }
+
+      if (fadeOut > 0) {
+        if (!block.querySelector('.fade-out')) {
+          const div = document.createElement('div');
+          div.classList.add('fade-out');
+          block.appendChild(div);
+        }
+      } else {
+        const el = block.querySelector('.fade-out');
+        if (el) el.remove();
       }
     }
 
-    outputLines.push(`<div>${html}</div>`);
-  }
+    let playbackX = 0;
+    let isDraggingPlayhead = false;
 
-  const font = hasBold ? 'MinecraftBold' : 'MinecraftRegular';
-  return `<div style="font-family: ${font}, monospace;">${outputLines.join('')}</div>`;
-}
+    function escapeHTML(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
 
+    function parseMinecraftCodes(text) {
+      const colorMap = {
+        '0': '#000000', '1': '#0000AA', '2': '#00AA00', '3': '#00AAAA',
+        '4': '#AA0000', '5': '#AA00AA', '6': '#FFAA00', '7': '#AAAAAA',
+        '8': '#555555', '9': '#5555FF', 'a': '#55FF55', 'b': '#55FFFF',
+        'c': '#FF5555', 'd': '#FF55FF', 'e': '#FFFF55', 'f': '#FFFFFF'
+      };
 
+      const formatMap = {
+        'l': 'font-weight: bold;',
+        'n': 'text-decoration: underline;',
+        'm': 'text-decoration: line-through;',
+        'o': 'font-style: italic;',
+        'r': ''
+      };
+
+      let currentStyles = '';
+      let hasBold = false;
+      let outputLines = [];
+
+      const lines = text.split('\n').slice(0, 2);
+
+      for (const line of lines) {
+        let html = '';
+        let parts = line.split(/(&[0-9a-frlomnk])/gi);
+
+        for (let part of parts) {
+          if (part.startsWith('&')) {
+            const code = part[1]?.toLowerCase();
+            if (colorMap[code]) {
+              currentStyles += `color: ${colorMap[code]};`;
+            } else if (formatMap.hasOwnProperty(code)) {
+              if (code === 'r') {
+                currentStyles = '';
+              } else {
+                currentStyles += formatMap[code];
+                if (code === 'l') hasBold = true;
+              }
+            }
+          } else if (part) {
+            html += `<span style="${currentStyles}">${escapeHTML(part)}</span>`;
+          }
+        }
+
+        outputLines.push(`<div>${html}</div>`);
+      }
+
+      const font = hasBold ? 'MinecraftBold' : 'MinecraftRegular';
+      return `<div style="font-family: ${font}, monospace;">${outputLines.join('')}</div>`;
+    }
+
+    function applyMinecraftColors() {
+      document.querySelectorAll('button, h3, h5').forEach(el => {
+        const txt = el.textContent;
+        if (txt.includes('&')) {
+          el.innerHTML = parseMinecraftCodes(txt);
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', applyMinecraftColors);
 
     const timeline = document.getElementById('timeline');
     const playbackLine = document.getElementById('playbackLine');
     const previewBox = document.getElementById('previewBox');
     const output = document.getElementById('output');
     const blockText = document.getElementById('blockText');
-    const playbackSpeedInput = document.getElementById('playbackSpeedInput');
 
     let blocks = [];
     let selectedBlock = null;
     let isPlaying = false;
     const TICK_SIZE = 20;
-    let ticksPerSecond = 20;
+    let ticksPerSecond = 200;
 
-    function updatePlaybackSpeed() {
-      ticksPerSecond = parseInt(playbackSpeedInput.value);
+    let undoStack = [];
+    let redoStack = [];
+
+    function snapshotTimeline() {
+      return blocks.map(block => ({
+        text: block.dataset.text,
+        fadeIn: block.dataset.fadeIn,
+        fadeOut: block.dataset.fadeOut,
+        duration: block.dataset.duration,
+        width: block.style.width,
+        left: block.style.left
+      }));
+    }
+
+    function restoreTimeline(snapshot) {
+      blocks.forEach(b => b.remove());
+      blocks = [];
+      selectedBlock = null;
+      snapshot.forEach(state => {
+        const block = document.createElement('div');
+        block.classList.add('block');
+        block.dataset.text = state.text;
+        block.dataset.fadeIn = state.fadeIn;
+        block.dataset.fadeOut = state.fadeOut;
+        block.dataset.duration = state.duration;
+        block.style.width = state.width;
+        block.style.left = state.left;
+        block.innerHTML = state.text.split('\n').map(line => `<div>${line}</div>`).join('');
+        block.setAttribute('title', state.text);
+        const durationLabel = document.createElement('div');
+        durationLabel.className = 'duration-label';
+        durationLabel.textContent = `${state.duration}t`;
+        block.appendChild(durationLabel);
+        const leftHandle = document.createElement('div');
+        leftHandle.classList.add('resize-handle', 'left-handle');
+        block.appendChild(leftHandle);
+        const rightHandle = document.createElement('div');
+        rightHandle.classList.add('resize-handle', 'right-handle');
+        block.appendChild(rightHandle);
+        updateFadeVisuals(block);
+        makeDraggable(block);
+        makeResizable(block, leftHandle, rightHandle);
+        block.addEventListener('click', e => { e.stopPropagation(); selectBlock(block); });
+        timeline.appendChild(block);
+        blocks.push(block);
+      });
+      if (!timeline.dataset.deselectAttached) {
+        timeline.addEventListener('click', e => {
+          if (e.target === timeline && selectedBlock) {
+            selectedBlock.classList.remove('selected');
+            selectedBlock = null;
+          }
+        });
+        timeline.dataset.deselectAttached = "true";
+      }
+    }
+
+    function pushHistory() {
+      undoStack.push(snapshotTimeline());
+      redoStack = [];
+    }
+
+    function undoTimeline() {
+      if (undoStack.length === 0) return;
+      redoStack.push(snapshotTimeline());
+      const snapshot = undoStack.pop();
+      restoreTimeline(snapshot);
+    }
+
+    function redoTimeline() {
+      if (redoStack.length === 0) return;
+      undoStack.push(snapshotTimeline());
+      const snapshot = redoStack.pop();
+      restoreTimeline(snapshot);
+    }
+
+    function createRainbowifyBlock(mainBlock) {
+      if (mainBlock._rainbowify) return;
+      if (!mainBlock.dataset.originalText) {
+        mainBlock.dataset.originalText = mainBlock.dataset.text;
+      }
+      applyRainbowEffect(mainBlock);
+      const rb = document.createElement('div');
+      rb.classList.add('rainbowify-block');
+      rb.dataset.type = "rainbowify";
+      rb.innerHTML = parseMinecraftCodes("&c&lR&6a&ei&an&bb&do&cw&6i&ef&ay");
+      timeline.appendChild(rb);
+      mainBlock._rainbowify = rb;
+      updateRainbowifyBlockPosition(mainBlock);
+      rb.addEventListener('dragstart', (e) => {
+        draggedRainbowifyBlock = rb;
+        e.dataTransfer.setData('effect', 'rainbowify-move');
+      });
+      rb.setAttribute("draggable", "true");
+      attachRainbowifyContextMenu(rb, mainBlock);
+    }
+
+    function updateRainbowifyBlockPosition(mainBlock) {
+      if (mainBlock._rainbowify) {
+        const mainTop = parseInt(mainBlock.style.top) || 20;
+        mainBlock._rainbowify.style.left = mainBlock.style.left;
+        mainBlock._rainbowify.style.width = mainBlock.style.width;
+        mainBlock._rainbowify.style.top = (mainTop + mainBlock.offsetHeight + 5) + "px";
+      }
+    }
+
+    function attachRainbowifyContextMenu(rb, mainBlock) {
+      rb.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        const menu = document.createElement('div');
+        menu.style.position = 'absolute';
+        menu.style.left = `${e.pageX}px`;
+        menu.style.top = `${e.pageY}px`;
+        menu.style.background = '#333';
+        menu.style.color = 'white';
+        menu.style.padding = '5px';
+        menu.style.border = '1px solid #555';
+        menu.innerHTML = `<button id="rbDelete">Delete</button>
+                          <button id="rbCancel">Cancel</button>`;
+        document.body.appendChild(menu);
+
+        menu.querySelector('#rbDelete').onclick = () => {
+          removeRainbowifyFromMain(mainBlock);
+          rb.remove();
+          mainBlock._rainbowify = null;
+          menu.remove();
+        };
+        menu.querySelector('#rbCancel').onclick = () => menu.remove();
+        document.addEventListener('click', e => { if (!menu.contains(e.target)) menu.remove(); }, { once: true });
+      });
+    }
+
+    function applyRainbowEffect(mainBlock) {
+      let original = mainBlock.dataset.originalText || mainBlock.dataset.text;
+      const colors = ["&c", "&6", "&e", "&a", "&b", "&d"];
+      let result = '';
+      let letterIndex = 0;
+      for (let char of original) {
+        if (char === "\n") {
+          result += "\n";
+        } else {
+          result += colors[letterIndex % colors.length] + char;
+          letterIndex++;
+        }
+      }
+      mainBlock.dataset.text = result;
+      const leftHandle = mainBlock.querySelector('.left-handle');
+      const rightHandle = mainBlock.querySelector('.right-handle');
+      mainBlock.innerHTML = result.split('\n').map(line => `<div>${line}</div>`).join('');
+      mainBlock.setAttribute('title', result);
+      if (leftHandle) mainBlock.appendChild(leftHandle);
+      if (rightHandle) mainBlock.appendChild(rightHandle);
+      updateFadeVisuals(mainBlock);
+    }
+
+    function removeRainbowifyFromMain(mainBlock) {
+      const strippedText = mainBlock.dataset.text.replace(/&[0-9a-frlomnk]/gi, '');
+      mainBlock.dataset.text = strippedText;
+      const leftHandle = mainBlock.querySelector('.left-handle');
+      const rightHandle = mainBlock.querySelector('.right-handle');
+      mainBlock.innerHTML = strippedText.split('\n').map(line => `<div>${line}</div>`).join('');
+      mainBlock.setAttribute('title', strippedText);
+      if (leftHandle) mainBlock.appendChild(leftHandle);
+      if (rightHandle) mainBlock.appendChild(rightHandle);
+      updateFadeVisuals(mainBlock);
     }
 
     function addBlock(duplicate = null) {
       const block = document.createElement('div');
       block.classList.add('block');
-      block.addEventListener('click', (e) => {
-  e.stopPropagation(); // prevent deselect
-  selectBlock(block);
-});
-function addBlockFromClipboard(data) {
-  const block = document.createElement('div');
-  block.classList.add('block');
-  block.dataset.text = data.text;
-  block.dataset.fadeIn = data.fadeIn;
-  block.dataset.fadeOut = data.fadeOut;
-  block.dataset.duration = data.duration;
-  block.style.width = data.width;
-  block.style.left = `${(blocks.length * 120)}px`; // offset new block
+      block.addEventListener('click', (e) => { e.stopPropagation(); selectBlock(block); });
 
-  block.innerHTML = parseMinecraftCodes(block.dataset.text)
-    .split('\n')
-    .map(line => `<div>${line}</div>`)
-    .join('');
-
-  const durationLabel = document.createElement('div');
-  durationLabel.className = 'duration-label';
-  durationLabel.textContent = `${block.dataset.duration}t`;
-  block.appendChild(durationLabel);
-
-  const leftHandle = document.createElement('div');
-  leftHandle.classList.add('resize-handle', 'left-handle');
-  block.appendChild(leftHandle);
-
-  const rightHandle = document.createElement('div');
-  rightHandle.classList.add('resize-handle', 'right-handle');
-  block.appendChild(rightHandle);
-
-  updateFadeVisuals(block);
-  makeDraggable(block);
-  makeResizable(block, leftHandle, rightHandle);
-
-  block.addEventListener('click', (e) => {
-    e.stopPropagation();
-    selectBlock(block);
-  });
-
-  timeline.appendChild(block);
-  blocks.push(block);
-  selectBlock(block);
-}
-
-function selectBlock(block) {
-  if (selectedBlock) selectedBlock.classList.remove('selected');
-  selectedBlock = block;
-  block.classList.add('selected');
-}
-
-timeline.addEventListener('click', (e) => {
-  if (e.target === timeline) {
-    if (selectedBlock) {
-      selectedBlock.classList.remove('selected');
-      selectedBlock = null;
-    }
-  }
-});
+      timeline.addEventListener('click', (e) => {
+        if (e.target === timeline) {
+          if (selectedBlock) {
+            selectedBlock.classList.remove('selected');
+            selectedBlock = null;
+          }
+        }
+      });
 
       if (duplicate) {
         block.dataset.text = duplicate.dataset.text;
@@ -389,7 +633,27 @@ timeline.addEventListener('click', (e) => {
         block.dataset.fadeOut = duplicate.dataset.fadeOut;
         block.dataset.duration = duplicate.dataset.duration;
         block.style.width = duplicate.style.width;
-        block.style.left = `${parseInt(duplicate.style.left) + 120}px`;
+        let baseLeft = parseInt(duplicate.style.left);
+        let dupWidth = parseInt(duplicate.style.width);
+        let candidateLeft = baseLeft + 120;
+        let candidateRight = candidateLeft + dupWidth;
+        let sorted = blocks.filter(b => parseInt(b.style.left) >= candidateLeft)
+          .sort((a, b) => parseInt(a.style.left) - parseInt(b.style.left));
+        sorted.forEach(b => {
+          let bLeft = parseInt(b.style.left);
+          if (bLeft < candidateRight) {
+            let shift = candidateRight - bLeft;
+            b.style.left = `${bLeft + shift}px`;
+            candidateRight = parseInt(b.style.left) + parseInt(b.style.width);
+          }
+        });
+        block.style.left = `${candidateLeft}px`;
+        block.style.top = duplicate.style.top || "20px";
+
+        if (duplicate._rainbowify) {
+          block.dataset.originalText = duplicate.dataset.originalText || duplicate.dataset.text.replace(/(&[0-9a-frlomnk])/gi, '');
+          block.dataset.text = block.dataset.originalText;
+        }
       } else {
         block.dataset.text = blockText.value;
         block.dataset.fadeIn = 0;
@@ -397,16 +661,18 @@ timeline.addEventListener('click', (e) => {
         block.dataset.duration = 5;
         block.style.width = `${5 * TICK_SIZE}px`;
         block.style.left = `${blocks.length * 120}px`;
+        block.style.top = "20px";
       }
 
       block.innerHTML = block.dataset.text
         .split('\n')
         .map(line => `<div>${line}</div>`)
         .join('');
-        const durationLabel = document.createElement('div');
-durationLabel.className = 'duration-label';
-durationLabel.textContent = `${block.dataset.duration}t`;
-block.appendChild(durationLabel);
+      block.setAttribute('title', block.dataset.text);
+      const durationLabel = document.createElement('div');
+      durationLabel.className = 'duration-label';
+      durationLabel.textContent = `${block.dataset.duration}t`;
+      block.appendChild(durationLabel);
 
       const leftHandle = document.createElement('div');
       leftHandle.classList.add('resize-handle', 'left-handle');
@@ -419,7 +685,6 @@ block.appendChild(durationLabel);
       updateFadeVisuals(block);
       makeDraggable(block);
       makeResizable(block, leftHandle, rightHandle);
-      
 
       block.addEventListener('contextmenu', (e) => {
         e.preventDefault();
@@ -450,13 +715,19 @@ block.appendChild(durationLabel);
             .split('\n')
             .map(line => `<div>${line}</div>`)
             .join('');
+          block.setAttribute('title', block.dataset.text);
           block.appendChild(leftHandle);
           block.appendChild(rightHandle);
           updateFadeVisuals(block);
           menu.remove();
         };
         menu.querySelector('#cancelBtn').onclick = () => menu.remove();
-        menu.querySelector('#deleteBtn').onclick = () => { block.remove(); blocks = blocks.filter(b => b !== block); menu.remove(); };
+        menu.querySelector('#deleteBtn').onclick = () => { 
+          if (block._rainbowify) { block._rainbowify.remove(); } 
+          block.remove(); 
+          blocks = blocks.filter(b => b !== block); 
+          menu.remove(); 
+        };
         menu.querySelector('#duplicateBtn').onclick = () => { addBlock(block); menu.remove(); };
 
         document.addEventListener('click', e => { if (!menu.contains(e.target)) menu.remove(); }, { once: true });
@@ -464,12 +735,16 @@ block.appendChild(durationLabel);
 
       timeline.appendChild(block);
       blocks.push(block);
+
+      if (duplicate && duplicate._rainbowify) {
+        createRainbowifyBlock(block);
+      }
     }
 
     function makeDraggable(el) {
       let dragging = false;
+      let draggingHappened = false;
       let offsetX = 0;
-
       el.addEventListener('mousedown', e => {
         if (e.target.classList.contains('resize-handle')) return;
         offsetX = e.clientX - el.offsetLeft;
@@ -479,149 +754,194 @@ block.appendChild(durationLabel);
 
       document.addEventListener('mousemove', e => {
         if (!dragging) return;
-        const newLeft = Math.round((e.clientX - offsetX) / TICK_SIZE) * TICK_SIZE;
-        el.style.left = `${Math.max(0, newLeft)}px`;
+        const candidate = Math.round((e.clientX - offsetX) / TICK_SIZE) * TICK_SIZE;
+        const currentWidth = parseInt(el.style.width);
+        let collision = false;
+        blocks.forEach(other => {
+          if (other === el) return;
+          const otherLeft = parseInt(other.style.left);
+          const otherWidth = parseInt(other.style.width);
+          const otherRight = otherLeft + otherWidth;
+          const candidateRight = candidate + currentWidth;
+          if (!(candidateRight <= otherLeft || candidate >= otherRight)) {
+            collision = true;
+          }
+        });
+        if (!collision) {
+          if (el.style.left !== `${Math.max(0, candidate)}px`) {
+            draggingHappened = true;
+          }
+          el.style.left = `${Math.max(0, candidate)}px`;
+          if (el._rainbowify) {
+            updateRainbowifyBlockPosition(el);
+          }
+        }
       });
 
-      document.addEventListener('mouseup', () => dragging = false);
+      document.addEventListener('mouseup', () => {
+        if (dragging && draggingHappened) {
+          pushHistory();
+          if (el._rainbowify) {
+            updateRainbowifyBlockPosition(el);
+          }
+        }
+        dragging = false;
+        draggingHappened = false;
+      });
     }
 
     function makeResizable(el, leftHandle, rightHandle) {
       [leftHandle, rightHandle].forEach(handle => {
         let resizing = false;
-        let startX, startWidth;
-
+        let startX, startWidth, startLeft;
         handle.addEventListener('mousedown', e => {
           resizing = true;
           startX = e.clientX;
           startWidth = parseInt(el.style.width);
+          startLeft = parseInt(el.style.left);
           e.preventDefault();
         });
 
         document.addEventListener('mousemove', e => {
           if (!resizing) return;
           const dx = e.clientX - startX;
-          let newWidth = startWidth + (handle === rightHandle ? dx : -dx);
-          newWidth = Math.max(TICK_SIZE, Math.min(10 * TICK_SIZE, newWidth));
-          el.style.width = `${newWidth}px`;
-          el.dataset.duration = Math.round(newWidth / TICK_SIZE);
+          let newWidth, newLeft;
+          if (handle === rightHandle) {
+            newWidth = startWidth + dx;
+            const elLeft = startLeft;
+            const candidateRight = elLeft + newWidth;
+            let minRightLimit = Infinity;
+            blocks.forEach(other => {
+              if (other === el) return;
+              const otherLeft = parseInt(other.style.left);
+              if (otherLeft > elLeft && otherLeft < minRightLimit) {
+                minRightLimit = otherLeft;
+              }
+            });
+            if (minRightLimit !== Infinity && candidateRight > minRightLimit) {
+              newWidth = minRightLimit - elLeft;
+            }
+            newWidth = Math.max(TICK_SIZE, Math.min(10 * TICK_SIZE, newWidth));
+            el.style.width = `${newWidth}px`;
+            el.dataset.duration = Math.round(newWidth / TICK_SIZE);
+          } else {
+            newWidth = startWidth - dx;
+            newLeft = startLeft + dx;
+            let maxLeftLimit = 0;
+            blocks.forEach(other => {
+              if (other === el) return;
+              const otherRight = parseInt(other.style.left) + parseInt(other.style.width);
+              if (otherRight <= startLeft && otherRight > maxLeftLimit) {
+                maxLeftLimit = otherRight;
+              }
+            });
+            if (newLeft < maxLeftLimit) {
+              newLeft = maxLeftLimit;
+              newWidth = startWidth + (startLeft - maxLeftLimit);
+            }
+            newWidth = Math.max(TICK_SIZE, Math.min(10 * TICK_SIZE, newWidth));
+            el.style.left = `${newLeft}px`;
+            el.style.width = `${newWidth}px`;
+            el.dataset.duration = Math.round(newWidth / TICK_SIZE);
+          }
           const label = el.querySelector('.duration-label');
-if (label) label.textContent = `${el.dataset.duration}t`;
+          if (label) label.textContent = `${el.dataset.duration}t`;
+          if (el._rainbowify) {
+            updateRainbowifyBlockPosition(el);
+          }
         });
 
-        document.addEventListener('mouseup', () => resizing = false);
+        document.addEventListener('mouseup', () => {
+          if (resizing) {
+            const currentWidth = parseInt(el.style.width);
+            const snapped = Math.round(currentWidth / TICK_SIZE) * TICK_SIZE;
+            el.style.width = `${snapped}px`;
+            el.dataset.duration = Math.round(snapped / TICK_SIZE);
+            const label = el.querySelector('.duration-label');
+            if (label) label.textContent = `${el.dataset.duration}t`;
+            pushHistory();
+            if (el._rainbowify) {
+              updateRainbowifyBlockPosition(el);
+            }
+          }
+          resizing = false;
+        });
       });
     }
 
-    function updateFadeVisuals(block) {
-      const fadeIn = parseInt(block.dataset.fadeIn);
-      const fadeOut = parseInt(block.dataset.fadeOut);
-
-      if (fadeIn > 0) {
-        if (!block.querySelector('.fade-in')) {
-          const div = document.createElement('div');
-          div.classList.add('fade-in');
-          block.appendChild(div);
-        }
-      } else {
-        const el = block.querySelector('.fade-in');
-        if (el) el.remove();
-      }
-
-      if (fadeOut > 0) {
-        if (!block.querySelector('.fade-out')) {
-          const div = document.createElement('div');
-          div.classList.add('fade-out');
-          block.appendChild(div);
-        }
-      } else {
-        const el = block.querySelector('.fade-out');
-        if (el) el.remove();
-      }
-    }
-
-
-    
     function playTimeline() {
-  const lastBlockEnd = blocks.reduce((max, block) => {
-    const left = parseInt(block.style.left);
-    const width = parseInt(block.style.width);
-    return Math.max(max, left + width);
-  }, 0);
+      const lastBlockEnd = blocks.reduce((max, block) => {
+        const left = parseInt(block.style.left);
+        const width = parseInt(block.style.width);
+        return Math.max(max, left + width);
+      }, 0);
 
-  // If playhead is at or past the end, reset it
-  if (playbackX >= lastBlockEnd) {
-    playbackX = 0;
-    updatePlayhead();
-    updatePreview();
-  }
+      if (playbackX >= lastBlockEnd) {
+        playbackX = 0;
+        updatePlayhead();
+        updatePreview();
+      }
 
-  if (isPlaying) {
-    isPlaying = false;
-    return;
-  }
+      if (isPlaying) {
+        isPlaying = false;
+        return;
+      }
 
-  isPlaying = true;
+      isPlaying = true;
 
-  function update() {
-    if (!isPlaying) return;
+      function update() {
+        if (!isPlaying) return;
 
-    updatePlayhead();
-    updatePreview();
+        updatePlayhead();
+        updatePreview();
 
-    if (playbackX >= lastBlockEnd) {
-      isPlaying = false;
-      return;
+        if (playbackX >= lastBlockEnd) {
+          isPlaying = false;
+          return;
+        }
+
+        playbackX += 1;
+        setTimeout(update, 1000 / ticksPerSecond);
+      }
+
+      update();
     }
 
-    playbackX += 1;
-    setTimeout(update, 1000 / ticksPerSecond);
-  }
+    function updatePlayhead() {
+      playbackLine.style.left = `${playbackX}px`;
+    }
 
-  update();
-}
+    function updatePreview() {
+      const activeBlock = blocks.find(block => {
+        const left = parseInt(block.style.left);
+        const right = left + parseInt(block.style.width);
+        return playbackX >= left && playbackX <= right;
+      });
 
-function updatePlayhead() {
-  playbackLine.style.left = `${playbackX}px`;
-}
+      if (!activeBlock) {
+        previewBox.innerHTML = '';
+        return;
+      }
 
-function updatePreview() {
-  const activeBlock = blocks.find(block => {
-    const left = parseInt(block.style.left);
-    const right = left + parseInt(block.style.width);
-    return playbackX >= left && playbackX <= right;
-  });
+      const blockLeft = parseInt(activeBlock.style.left);
+      const fadeIn = parseInt(activeBlock.dataset.fadeIn);
+      const fadeOut = parseInt(activeBlock.dataset.fadeOut);
+      const totalTicks = parseInt(activeBlock.dataset.duration);
 
-  if (!activeBlock) {
-    previewBox.innerHTML = '';
-    return;
-  }
+      const localX = playbackX - blockLeft;
+      const localTick = localX / TICK_SIZE;
 
-  const blockLeft = parseInt(activeBlock.style.left);
-  const blockWidth = parseInt(activeBlock.style.width);
-  const fadeIn = parseInt(activeBlock.dataset.fadeIn);
-  const fadeOut = parseInt(activeBlock.dataset.fadeOut);
-  const totalTicks = parseInt(activeBlock.dataset.duration);
+      let opacity = 1;
+      if (fadeIn > 0 && localTick < fadeIn) {
+        opacity = localTick / fadeIn;
+      }
+      if (fadeOut > 0 && localTick >= totalTicks - fadeOut) {
+        opacity = (totalTicks - localTick) / fadeOut;
+      }
 
-  const localX = playbackX - blockLeft; // how far into the block we are
-  const fadeInTicks = fadeIn;
-  const fadeOutTicks = fadeOut;
-
-  let opacity = 1;
-
-  // Fade In logic
-  if (fadeInTicks > 0 && localX < fadeInTicks) {
-    opacity = localX / fadeInTicks;
-  }
-
-  // Fade Out logic
-  if (fadeOutTicks > 0 && localX >= totalTicks - fadeOutTicks) {
-    opacity = (totalTicks - localX) / fadeOutTicks;
-  }
-
-  const formattedHTML = parseMinecraftCodes(activeBlock.dataset.text);
-  previewBox.innerHTML = `<div style="opacity: ${opacity.toFixed(2)}">${formattedHTML}</div>`;
-}
+      const formattedHTML = parseMinecraftCodes(activeBlock.dataset.text);
+      previewBox.innerHTML = `<div style="opacity: ${opacity.toFixed(2)}">${formattedHTML}</div>`;
+    }
 
     function exportTimeline() {
       const timelineBlocks = [...blocks].sort((a, b) => parseInt(a.style.left) - parseInt(b.style.left));
@@ -631,8 +951,13 @@ function updatePreview() {
       let currentPause = 0;
       let accumulatedPause = 0;
 
+      if (timelineBlocks.length === 0) {
+        output.textContent = 'No blocks to export.';
+        return;
+      }
+
       timelineBlocks.forEach((block, index) => {
-        const start = parseInt(block.style.left) / TICK_SIZE;
+        const start = Math.round(parseInt(block.style.left) / TICK_SIZE);
         const dur = parseInt(block.dataset.duration);
         const fadeIn = parseInt(block.dataset.fadeIn);
         const fadeOut = parseInt(block.dataset.fadeOut);
@@ -640,9 +965,7 @@ function updatePreview() {
         let line1 = lines[0]?.replace(/"/g, '\\"') || '&f';
         let line2 = lines[1]?.replace(/"/g, '\\"') || '&f';
 
-        
-
-        const pauseBefore = start - currentPause;
+        const pauseBefore = Math.round(start - currentPause);
 
         if (chunkCounter % chunkSize === 0) {
           if (chunkCounter > 0) {
@@ -669,9 +992,26 @@ function updatePreview() {
 
     function setDurationAll() {
       const duration = parseInt(document.getElementById('durationAllInput').value);
-      blocks.forEach(block => {
+      let sorted = blocks.slice().sort((a, b) => parseInt(a.style.left) - parseInt(b.style.left));
+      let gaps = [];
+      for (let i = 0; i < sorted.length; i++) {
+        if (i === 0) {
+          gaps.push(parseInt(sorted[i].style.left));
+        } else {
+          let prevRight = parseInt(sorted[i - 1].style.left) + parseInt(sorted[i - 1].style.width);
+          gaps.push(parseInt(sorted[i].style.left) - prevRight);
+        }
+      }
+      sorted.forEach(block => {
         block.style.width = `${duration * TICK_SIZE}px`;
         block.dataset.duration = duration;
+      });
+      let currentLeft = gaps[0] || 0;
+      sorted.forEach((block, index) => {
+        block.style.left = `${currentLeft}px`;
+        const label = block.querySelector('.duration-label');
+        if (label) label.textContent = `${duration}t`;
+        currentLeft += (duration * TICK_SIZE) + (gaps[index + 1] || 0);
       });
     }
 
@@ -688,96 +1028,321 @@ function updatePreview() {
     }
 
     document.addEventListener('keydown', (e) => {
-  const tag = document.activeElement.tagName.toLowerCase();
-  const isTyping = tag === 'input' || tag === 'textarea';
+      const tag = document.activeElement.tagName.toLowerCase();
+      const isTyping = tag === 'input' || tag === 'textarea';
 
-  if (e.code === 'Space' && !isTyping) {
-    e.preventDefault();
-    playTimeline();
-  }
-});
+      if (e.code === 'Space' && !isTyping) {
+        e.preventDefault();
+        playTimeline();
+      }
+    });
     document.addEventListener('keydown', (e) => {
-  if ((e.key === 'Delete' || e.key === 'Backspace') && selectedBlock) {
-    selectedBlock.remove();
-    blocks = blocks.filter(b => b !== selectedBlock);
-    selectedBlock = null;
-  }
-});
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedBlock) {
+        if (selectedBlock.dataset.type === "rainbowify") {
+          blocks.forEach(b => {
+            if (b._rainbowify === selectedBlock) {
+              removeRainbowifyFromMain(b);
+              b._rainbowify.remove();
+              b._rainbowify = null;
+            }
+          });
+          selectedBlock.remove();
+          selectedBlock = null;
+          return;
+        }
+        if (selectedBlock._rainbowify) {
+          selectedBlock._rainbowify.remove();
+        }
+        selectedBlock.remove();
+        blocks = blocks.filter(b => b !== selectedBlock);
+        selectedBlock = null;
+      }
+    });
 
-document.addEventListener('keydown', (e) => {
-  const tag = document.activeElement.tagName.toLowerCase();
-  const isTyping = tag === 'input' || tag === 'textarea';
+    document.addEventListener('click', (e) => {
+      if (!timeline.contains(e.target)) {
+        if (selectedBlock) {
+          selectedBlock.classList.remove('selected');
+          selectedBlock = null;
+        }
+      }
+    });
 
-  // Copy (Ctrl+C)
-  if (e.ctrlKey && e.key === 'c' && selectedBlock && !isTyping) {
-    e.preventDefault();
-    clipboardBlockData = {
-      text: selectedBlock.dataset.text,
-      fadeIn: selectedBlock.dataset.fadeIn,
-      fadeOut: selectedBlock.dataset.fadeOut,
-      duration: selectedBlock.dataset.duration,
-      width: selectedBlock.style.width
-    };
-  }
+    document.addEventListener('keydown', (e) => {
+      const tag = document.activeElement.tagName.toLowerCase();
+      const isTyping = tag === 'input' || tag === 'textarea';
+      if (isTyping) return;
+      if (e.ctrlKey && e.key === 'd') {
+        e.preventDefault();
+        if (selectedBlock) {
+          addBlock(selectedBlock);
+        }
+      }
+    });
 
-  // Paste (Ctrl+V)
-  if (e.ctrlKey && e.key === 'v' && clipboardBlockData && !isTyping) {
-    e.preventDefault();
-    addBlockFromClipboard(clipboardBlockData);
-  }
-});
+    playheadHandle.addEventListener('mousedown', (e) => {
+      isDraggingPlayhead = true;
+      e.preventDefault();
+    });
 
+    document.addEventListener('mousemove', (e) => {
+      if (isDraggingPlayhead) {
+        const rect = timeline.getBoundingClientRect();
+        playbackX = Math.max(0, e.clientX - rect.left);
+        updatePlayhead();
+        updatePreview();
+      }
+    });
 
-playheadHandle.addEventListener('mousedown', (e) => {
-  isDraggingPlayhead = true;
-  e.preventDefault();
-});
+    document.addEventListener('mouseup', () => {
+      isDraggingPlayhead = false;
+    });
 
-document.addEventListener('mousemove', (e) => {
-  if (isDraggingPlayhead) {
-    const rect = timeline.getBoundingClientRect();
-    playbackX = Math.max(0, e.clientX - rect.left);
-    updatePlayhead();
-    updatePreview();
-  }
-});
+    let isDraggingTimeline = false;
+    let dragStartX = 0;
+    let initialScrollLeft = 0;
 
-document.addEventListener('mouseup', () => {
-  isDraggingPlayhead = false;
-});
+    timeline.addEventListener('mousedown', (e) => {
+      if (e.target !== timeline) return;
 
-// 🎯 Dragging Playhead (clean and fixed)
-let isDraggingTimeline = false;
-let dragStartX = 0;
-let initialScrollLeft = 0;
+      isDraggingTimeline = true;
+      dragStartX = e.clientX;
+      initialScrollLeft = timeline.scrollLeft;
+      timeline.style.cursor = 'grabbing';
 
-timeline.addEventListener('mousedown', (e) => {
-  // Only start drag if clicking directly on the timeline background
-  if (e.target !== timeline) return;
+      e.preventDefault();
+    });
 
-  isDraggingTimeline = true;
-  dragStartX = e.clientX;
-  initialScrollLeft = timeline.scrollLeft;
-  timeline.style.cursor = 'grabbing';
+    window.addEventListener('mousemove', (e) => {
+      if (!isDraggingTimeline) return;
 
-  // Prevent text selection
-  e.preventDefault();
-});
+      const dx = e.clientX - dragStartX;
+      timeline.scrollLeft = initialScrollLeft - dx;
+    });
 
-window.addEventListener('mousemove', (e) => {
-  if (!isDraggingTimeline) return;
+    window.addEventListener('mouseup', () => {
+      if (isDraggingTimeline) {
+        isDraggingTimeline = false;
+        timeline.style.cursor = 'default';
+      }
+    });
 
-  const dx = e.clientX - dragStartX;
-  timeline.scrollLeft = initialScrollLeft - dx;
-});
+    timeline.addEventListener('dragover', (e) => {
+      const block = e.target.closest('.block');
+      if (block) {
+        e.preventDefault();
+        block.classList.add('dimmed');
+      }
+    });
 
-window.addEventListener('mouseup', () => {
-  if (isDraggingTimeline) {
-    isDraggingTimeline = false;
-    timeline.style.cursor = 'default';
-  }
-});
+    timeline.addEventListener('dragleave', (e) => {
+      const block = e.target.closest('.block');
+      if (block) {
+        block.classList.remove('dimmed');
+      }
+    });
 
+    timeline.addEventListener('drop', (e) => {
+      const effect = e.dataTransfer.getData('effect');
+      const targetMain = e.target.closest('.block');
+      if (targetMain) {
+        targetMain.classList.remove('dimmed');
+      }
+      if (effect === 'rainbowify' && targetMain) {
+        createRainbowifyBlock(targetMain);
+        e.preventDefault();
+      } else if (effect === 'rainbowify-move' && targetMain) {
+        if (draggedRainbowifyBlock) {
+          blocks.forEach(b => {
+            if (b._rainbowify === draggedRainbowifyBlock) {
+              removeRainbowifyFromMain(b);
+              b._rainbowify.remove();
+              b._rainbowify = null;
+            }
+          });
+          createRainbowifyBlock(targetMain);
+        }
+        e.preventDefault();
+      }
+    });
+
+    function copyToClipboard() {
+      const outEl = document.getElementById('output');
+      navigator.clipboard.writeText(outEl.textContent)
+        .then(() => {
+          const btn = document.getElementById('copyButton');
+          const original = btn.innerText;
+          btn.innerText = "✅";
+          setTimeout(() => { btn.innerText = original; }, 2000);
+        })
+        .catch(err => { console.error("Copy failed:", err); });
+    }
+
+    function showImportBox() {
+      document.getElementById('importModal').style.display = 'block';
+    }
+
+    function closeImportModal() {
+      document.getElementById('importModal').style.display = 'none';
+    }
+
+    function importTimelineFromModal() {
+      const code = document.getElementById('importText').value;
+      if (!code) return;
+
+      blocks.forEach(b => b.remove());
+      blocks = [];
+
+      let leftPos = 0;
+      let insideIf = false;
+
+      const lines = code.split('\n').map(l => l.trim()).filter(Boolean);
+
+      lines.forEach(line => {
+        if (line.startsWith("if")) {
+          insideIf = true;
+          return;
+        }
+        if (line === "}") {
+          insideIf = false;
+          return;
+        }
+
+        if (line.startsWith("pause")) {
+          if (!insideIf) return;
+
+          const match = line.match(/pause\s+(\d+)/);
+          if (match) {
+            const pause = parseInt(match[1] - 1);
+            leftPos += pause * TICK_SIZE;
+          }
+        } else if (line.startsWith("title")) {
+          const match = line.match(/title\s+"([^"]+)"\s+"([^"]+)"\s+(\d+)\s+(\d+)\s+(\d+)/);
+          if (match) {
+            let [, t1, t2, fadeIn, duration, fadeOut] = match;
+            if (t1 === "&f") t1 = "";
+            if (t2 === "&f") t2 = "";
+            const text = t1 + (t2 ? "\n" + t2 : "");
+
+            const block = document.createElement('div');
+            block.classList.add('block');
+            block.dataset.text = text;
+            block.dataset.fadeIn = fadeIn;
+            block.dataset.fadeOut = fadeOut;
+            block.dataset.duration = duration;
+            block.style.width = `${duration * TICK_SIZE}px`;
+            block.style.left = `${leftPos}px`;
+            block.style.top = "20px";
+            block.innerHTML = text.split('\n').map(l => `<div>${l}</div>`).join('');
+            block.setAttribute('title', text);
+
+            const durationLabel = document.createElement('div');
+            durationLabel.className = 'duration-label';
+            durationLabel.textContent = `${duration}t`;
+            block.appendChild(durationLabel);
+
+            const leftHandle = document.createElement('div');
+            leftHandle.classList.add('resize-handle', 'left-handle');
+            block.appendChild(leftHandle);
+
+            const rightHandle = document.createElement('div');
+            rightHandle.classList.add('resize-handle', 'right-handle');
+            block.appendChild(rightHandle);
+
+            updateFadeVisuals(block);
+            makeDraggable(block);
+            makeResizable(block, leftHandle, rightHandle);
+            block.addEventListener('click', e => { e.stopPropagation(); selectBlock(block); });
+            block.addEventListener('contextmenu', (e) => {
+              e.preventDefault();
+              const menu = document.createElement('div');
+              menu.style.position = 'absolute';
+              menu.style.left = `${e.pageX}px`;
+              menu.style.top = `${e.pageY}px`;
+              menu.style.background = '#2a2a2a';
+              menu.style.color = 'white';
+              menu.style.padding = '10px';
+              menu.style.border = '1px solid #555';
+              menu.innerHTML = `
+                <textarea rows="2">${block.dataset.text}</textarea><br>
+                Fade In: <input type="range" min="0" max="3" value="${block.dataset.fadeIn}"><br>
+                Fade Out: <input type="range" min="0" max="3" value="${block.dataset.fadeOut}"><br>
+                <button id="saveBtn">Save</button>
+                <button id="cancelBtn">Cancel</button>
+                <button id="deleteBtn">Delete</button>
+                <button id="duplicateBtn">Duplicate</button>
+              `;
+              document.body.appendChild(menu);
+
+              menu.querySelector('#saveBtn').onclick = () => {
+                block.dataset.text = menu.querySelector('textarea').value;
+                block.dataset.fadeIn = menu.querySelectorAll('input')[0].value;
+                block.dataset.fadeOut = menu.querySelectorAll('input')[1].value;
+                block.innerHTML = block.dataset.text.split('\n').map(line => `<div>${line}</div>`).join('');
+                block.setAttribute('title', block.dataset.text);
+                block.appendChild(leftHandle);
+                block.appendChild(rightHandle);
+                updateFadeVisuals(block);
+                menu.remove();
+              };
+              menu.querySelector('#cancelBtn').onclick = () => menu.remove();
+              menu.querySelector('#deleteBtn').onclick = () => { 
+                if (block._rainbowify) { block._rainbowify.remove(); } 
+                block.remove(); 
+                blocks = blocks.filter(b => b !== block); 
+                menu.remove(); 
+              };
+              menu.querySelector('#duplicateBtn').onclick = () => { addBlock(block); menu.remove(); };
+
+              document.addEventListener('click', e => { if (!menu.contains(e.target)) menu.remove(); }, { once: true });
+            });
+
+            timeline.appendChild(block);
+            blocks.push(block);
+
+            leftPos += (duration * TICK_SIZE) + 20;
+          }
+        }
+      });
+
+      pushHistory();
+      selectedBlock = null;
+      closeImportModal();
+    }
+
+    const rainbowifyBtn = document.getElementById('rainbowifyBtn');
+    rainbowifyBtn.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('effect', 'rainbowify');
+    });
+
+    timeline.addEventListener('dragover', (e) => {
+      const block = e.target.closest('.block');
+      if (block) {
+        e.preventDefault();
+      }
+    });
+
+    timeline.addEventListener('drop', (e) => {
+      const effect = e.dataTransfer.getData('effect');
+      const targetMain = e.target.closest('.block');
+      if (effect === 'rainbowify' && targetMain) {
+        createRainbowifyBlock(targetMain);
+        e.preventDefault();
+      } else if (effect === 'rainbowify-move' && targetMain) {
+        if (draggedRainbowifyBlock) {
+          blocks.forEach(b => {
+            if (b._rainbowify === draggedRainbowifyBlock) {
+              removeRainbowifyFromMain(b);
+              b._rainbowify.remove();
+              b._rainbowify = null;
+            }
+          });
+          createRainbowifyBlock(targetMain);
+        }
+        e.preventDefault();
+      }
+    });
   </script>
 </body>
+
 </html>
